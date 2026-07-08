@@ -1,0 +1,82 @@
+/* Institutional design tokens — Ademicon palette. Single source of truth for
+   theming; apps import this after their Tailwind/shadcn base imports so these
+   values win. */
+
+:root {
+  --background: #ffffff;
+  --foreground: #1f2937;
+  --card: #ffffff;
+  --card-foreground: #1f2937;
+  --popover: #ffffff;
+  --popover-foreground: #1f2937;
+  --primary: #003b71;
+  --primary-foreground: #ffffff;
+  --secondary: #005daa;
+  --secondary-foreground: #ffffff;
+  --muted: #f6f8fb;
+  --muted-foreground: #64748b;
+  --accent: #e6f0fa;
+  --accent-foreground: #003b71;
+  --destructive: #ef4444;
+  --destructive-foreground: #ffffff;
+  --success: #22c55e;
+  --success-foreground: #ffffff;
+  --warning: #f59e0b;
+  --warning-foreground: #1f2937;
+  --border: #e2e8f0;
+  --input: #e2e8f0;
+  --ring: #005daa;
+  --chart-1: #003b71;
+  --chart-2: #005daa;
+  --chart-3: #22c55e;
+  --chart-4: #f59e0b;
+  --chart-5: #ef4444;
+  --radius: 0.75rem;
+  --sidebar: #f6f8fb;
+  --sidebar-foreground: #1f2937;
+  --sidebar-primary: #003b71;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #e6f0fa;
+  --sidebar-accent-foreground: #003b71;
+  --sidebar-border: #e2e8f0;
+  --sidebar-ring: #005daa;
+}
+
+.dark {
+  --background: #0f172a;
+  --foreground: #f1f5f9;
+  --card: #1f2937;
+  --card-foreground: #f1f5f9;
+  --popover: #1f2937;
+  --popover-foreground: #f1f5f9;
+  --primary: #005daa;
+  --primary-foreground: #ffffff;
+  --secondary: #003b71;
+  --secondary-foreground: #ffffff;
+  --muted: #1f2937;
+  --muted-foreground: #94a3b8;
+  --accent: #1e3a5f;
+  --accent-foreground: #ffffff;
+  --destructive: #ef4444;
+  --destructive-foreground: #ffffff;
+  --success: #22c55e;
+  --success-foreground: #0f172a;
+  --warning: #f59e0b;
+  --warning-foreground: #0f172a;
+  --border: rgb(255 255 255 / 10%);
+  --input: rgb(255 255 255 / 15%);
+  --ring: #005daa;
+  --chart-1: #005daa;
+  --chart-2: #22c55e;
+  --chart-3: #f59e0b;
+  --chart-4: #ef4444;
+  --chart-5: #003b71;
+  --sidebar: #111827;
+  --sidebar-foreground: #f1f5f9;
+  --sidebar-primary: #005daa;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #1e3a5f;
+  --sidebar-accent-foreground: #ffffff;
+  --sidebar-border: rgb(255 255 255 / 10%);
+  --sidebar-ring: #005daa;
+}

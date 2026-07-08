@@ -1,0 +1,36 @@
+# dependencies
+node_modules/
+.pnpm-store/
+
+# next.js
+.next/
+out/
+
+# turbo
+.turbo/
+
+# build outputs
+dist/
+build/
+
+# env
+.env
+.env*.local
+!.env.example
+
+# supabase
+supabase/.branches/
+supabase/.temp/
+
+# whatsapp-connector session (sensitive — never commit)
+apps/whatsapp-connector/auth_state/
+
+# misc
+.DS_Store
+*.log
+coverage/
+.vscode/*
+!.vscode/extensions.json
+
+# claude code local state
+.claude/

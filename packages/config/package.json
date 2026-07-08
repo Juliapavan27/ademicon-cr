@@ -1,0 +1,14 @@
+{
+  "name": "@ademicon/config",
+  "private": true,
+  "version": "0.1.0",
+  "main": "index.js",
+  "exports": {
+    "./tsconfig/base.json": "./tsconfig/base.json",
+    "./tsconfig/nextjs.json": "./tsconfig/nextjs.json",
+    "./eslint": "./eslint.config.js"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.2"
+  }
+}
