@@ -24,6 +24,7 @@ supabase/.temp/
 
 # whatsapp-connector session (sensitive — never commit)
 apps/whatsapp-connector/auth_state/
+apps/whatsapp-connector/whatsapp-qr.png
 
 # misc
 .DS_Store
