@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { ProviderFactory } from "@ademicon/ai-providers";
 import { createClient } from "@/shared/lib/supabase/server";
 import { SupabaseConversationsRepository } from "@/features/conversations/repository/supabase-conversations-repository";
+import { composeColdOutreachMessage } from "@/features/conversations/domain/cold-outreach";
 
 const bodySchema = z.object({ leadId: z.string().uuid() });
 
@@ -22,7 +22,7 @@ export async function POST(request: Request) {
 
   const { data: lead, error: leadError } = await supabase
     .from("leads")
-    .select("full_name, phone")
+    .select("full_name, phone, company")
     .eq("id", parsed.data.leadId)
     .single();
   if (leadError || !lead) {
@@ -32,24 +32,19 @@ export async function POST(request: Request) {
   const repository = new SupabaseConversationsRepository(supabase);
   const conversationId = await repository.findOrCreateOutboundConversation(parsed.data.leadId, lead.phone);
 
-  const provider = ProviderFactory.resolve({});
-  const result = await provider.generateResponse({
-    messages: [
-      {
-        role: "user",
-        content: `Novo lead para iniciar contato: ${lead.full_name}. Nunca conversamos antes — inicie o primeiro contato de forma calorosa, se apresentando como time comercial da Ademicon.`,
-      },
-    ],
-  });
+  // A genuine cold opener, not a reactive reply: this lead never asked about
+  // consórcio and has never talked to Ademicon, so the message must spark
+  // curiosity rather than assume interest — see composeColdOutreachMessage.
+  const text = composeColdOutreachMessage({ fullName: lead.full_name, company: lead.company });
 
-  const messageId = await repository.insertMessage(conversationId, "outbound", "ai", result.text);
+  const messageId = await repository.insertMessage(conversationId, "outbound", "ai", text);
   await repository.insertAiDecision(
     conversationId,
     messageId,
     "reply",
     { trigger: "outbound_initiate", leadName: lead.full_name },
-    { text: result.text },
+    { text },
   );
 
-  return NextResponse.json({ conversationId, message: result.text });
+  return NextResponse.json({ conversationId, message: text });
 }

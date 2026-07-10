@@ -19,8 +19,8 @@ import { parseLeadsCsv } from "../../domain/lead-import";
 import { useImportLeads } from "../../hooks/use-import-leads";
 
 const PLACEHOLDER = `nome,telefone,empresa,observação
-Marina Alves,11 98888-0000,Alves Contabilidade,pediu simulação de imóvel de 350 mil
-Rodrigo Nunes,11 97777-0000,,cliente indicado pelo Carlos`;
+Marina Alves,11 98888-0000,Alves Contabilidade,dona de contabilidade - contato frio
+Rodrigo Nunes,11 97777-0000,,contato frio sem histórico prévio`;
 
 export function ImportLeadsDialog() {
   const [open, setOpen] = useState(false);
@@ -57,8 +57,9 @@ export function ImportLeadsDialog() {
         <DialogHeader>
           <DialogTitle>Importar lista de leads</DialogTitle>
           <DialogDescription>
-            Cole a lista copiada de uma planilha (Excel/Google Sheets) ou envie um arquivo .csv. A IA
-            qualifica cada lead automaticamente assim que a importação for confirmada.
+            Para contatos frios — pessoas que ainda não conhecem a Ademicon. Cole a lista copiada de uma
+            planilha (Excel/Google Sheets) ou envie um arquivo .csv. A IA qualifica cada lead automaticamente
+            assim que a importação for confirmada.
           </DialogDescription>
         </DialogHeader>
 

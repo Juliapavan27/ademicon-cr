@@ -36,6 +36,7 @@ export function LeadDetailSheet({
             <SheetHeader>
               <SheetTitle>{lead.fullName}</SheetTitle>
               <div className="flex flex-col gap-1 text-sm text-muted-foreground">
+                {lead.company && <span>{lead.company}</span>}
                 {lead.email && <span>{lead.email}</span>}
                 {lead.phone && <span>{lead.phone}</span>}
               </div>

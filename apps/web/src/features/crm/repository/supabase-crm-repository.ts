@@ -17,7 +17,7 @@ function toList<T>(relation: T | T[] | null | undefined): T[] {
   return Array.isArray(relation) ? relation : [relation];
 }
 
-const LEAD_SELECT = "id, organization_id, full_name, email, phone, source, specialty_id, city_id, current_stage_id, assigned_consultant_id, lead_score, status, created_at, updated_at, lead_tags(tags(id, organization_id, name, color))";
+const LEAD_SELECT = "id, organization_id, full_name, email, phone, company, source, specialty_id, city_id, current_stage_id, assigned_consultant_id, lead_score, status, created_at, updated_at, lead_tags(tags(id, organization_id, name, color))";
 
 type LeadRow = {
   id: string;
@@ -25,6 +25,7 @@ type LeadRow = {
   full_name: string;
   email: string | null;
   phone: string | null;
+  company: string | null;
   source: string;
   specialty_id: string | null;
   city_id: string | null;
@@ -44,6 +45,7 @@ function mapLead(row: LeadRow): Lead {
     fullName: row.full_name,
     email: row.email,
     phone: row.phone,
+    company: row.company,
     source: row.source as Lead["source"],
     specialtyId: row.specialty_id,
     cityId: row.city_id,
@@ -126,6 +128,7 @@ export class SupabaseCrmRepository implements CrmRepository {
         full_name: input.fullName,
         email: input.email ?? null,
         phone: input.phone ?? null,
+        company: input.company ?? null,
         source: input.source ?? "manual",
         current_stage_id: stageId ?? null,
       })

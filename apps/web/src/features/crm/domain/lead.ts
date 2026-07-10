@@ -7,6 +7,7 @@ export interface Lead {
   fullName: string;
   email: string | null;
   phone: string | null;
+  company: string | null;
   source: LeadSource;
   specialtyId: string | null;
   cityId: string | null;

@@ -52,6 +52,7 @@ function buildLead(overrides: Partial<Lead> = {}): Lead {
     fullName: "Lead Teste",
     email: null,
     phone: null,
+    company: null,
     source: "manual",
     specialtyId: null,
     cityId: null,

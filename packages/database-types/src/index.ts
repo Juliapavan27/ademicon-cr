@@ -883,6 +883,7 @@ export type Database = {
         Row: {
           assigned_consultant_id: string | null
           city_id: string | null
+          company: string | null
           consent_given_at: string | null
           consent_source: string | null
           created_at: string
@@ -901,6 +902,7 @@ export type Database = {
         Insert: {
           assigned_consultant_id?: string | null
           city_id?: string | null
+          company?: string | null
           consent_given_at?: string | null
           consent_source?: string | null
           created_at?: string
@@ -919,6 +921,7 @@ export type Database = {
         Update: {
           assigned_consultant_id?: string | null
           city_id?: string | null
+          company?: string | null
           consent_given_at?: string | null
           consent_source?: string | null
           created_at?: string

@@ -15,6 +15,7 @@ export interface CreateLeadInput {
   fullName: string;
   email?: string;
   phone?: string;
+  company?: string;
   source?: LeadSource;
   stageId?: string;
 }

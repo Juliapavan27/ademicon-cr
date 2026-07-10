@@ -27,6 +27,7 @@ export class LeadImportService {
         fullName: row.fullName,
         phone: row.phone,
         email: row.email,
+        company: row.company,
         source: "import",
       });
 
@@ -52,6 +53,9 @@ export class LeadImportService {
       });
 
       await this.repository.adjustLeadScore(lead.id, lead.leadScore, score - lead.leadScore, motivo);
+      if (row.note) {
+        await this.repository.createNote(lead.id, `Observação da importação: ${row.note}`);
+      }
       results.push({ fullName: row.fullName, score, motivo });
     }
 
