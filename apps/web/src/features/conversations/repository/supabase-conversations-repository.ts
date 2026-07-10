@@ -1,7 +1,13 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database, Json } from "@ademicon/database-types";
 import type { ConversationsRepository } from "../domain/conversations-repository";
-import type { AiFeedback, ConversationMessage, ConversationSummary, FeedbackType } from "../domain/conversation";
+import type {
+  AiFeedback,
+  ConversationMessage,
+  ConversationSummary,
+  FeedbackType,
+  MessageSenderType,
+} from "../domain/conversation";
 
 function toList<T>(relation: T | T[] | null | undefined): T[] {
   if (!relation) return [];
@@ -82,5 +88,77 @@ export class SupabaseConversationsRepository implements ConversationsRepository 
       correctionPayload: row.correction_payload as Record<string, unknown> | null,
       createdAt: row.created_at,
     }));
+  }
+
+  async findOrCreateOutboundConversation(leadId: string, leadPhone: string | null): Promise<string> {
+    const { data: existing } = await this.supabase
+      .from("conversations")
+      .select("id")
+      .eq("lead_id", leadId)
+      .eq("channel", "whatsapp")
+      .neq("status", "closed")
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (existing) return existing.id;
+
+    const { data, error } = await this.supabase
+      .from("conversations")
+      .insert({
+        lead_id: leadId,
+        channel: "whatsapp",
+        status: "open",
+        external_thread_id: leadPhone,
+        last_message_at: new Date().toISOString(),
+      })
+      .select("id")
+      .single();
+    if (error) throw error;
+    return data.id;
+  }
+
+  async insertMessage(
+    conversationId: string,
+    direction: "inbound" | "outbound",
+    senderType: MessageSenderType,
+    content: string,
+  ): Promise<string> {
+    const { data, error } = await this.supabase
+      .from("messages")
+      .insert({ conversation_id: conversationId, direction, sender_type: senderType, content })
+      .select("id")
+      .single();
+    if (error) throw error;
+
+    await this.supabase
+      .from("conversations")
+      .update({ last_message_at: new Date().toISOString() })
+      .eq("id", conversationId);
+
+    return data.id;
+  }
+
+  async insertAiDecision(
+    conversationId: string,
+    messageId: string,
+    decisionType: string,
+    inputContext: Record<string, unknown>,
+    outputPayload: Record<string, unknown>,
+  ): Promise<string> {
+    const { data, error } = await this.supabase
+      .from("ai_decisions")
+      .insert({
+        conversation_id: conversationId,
+        message_id: messageId,
+        decision_type: decisionType,
+        input_context: inputContext as Json,
+        output_payload: outputPayload as Json,
+        llm_provider: "mock",
+        llm_model: "mock-v1",
+      })
+      .select("id")
+      .single();
+    if (error) throw error;
+    return data.id;
   }
 }

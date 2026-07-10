@@ -1,10 +1,8 @@
 "use client";
 
 import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
-import { useConversations } from "../hooks/use-conversations";
-import type { ConversationStatus } from "../domain/conversation";
+import type { ConversationStatus, ConversationSummary } from "../domain/conversation";
 
 const STATUS_LABELS: Record<ConversationStatus, string> = {
   open: "Em aberto",
@@ -28,31 +26,21 @@ function formatTimestamp(value: string | null): string {
 }
 
 export function ConversationList({
+  conversations,
   selectedId,
   onSelect,
 }: {
+  conversations: ConversationSummary[];
   selectedId: string | null;
   onSelect: (conversationId: string) => void;
 }) {
-  const { data, isLoading } = useConversations();
-
-  if (isLoading) {
-    return (
-      <div className="flex flex-col gap-2 p-3">
-        {Array.from({ length: 5 }).map((_, index) => (
-          <Skeleton key={index} className="h-16 w-full rounded-lg" />
-        ))}
-      </div>
-    );
-  }
-
-  if (!data || data.length === 0) {
+  if (conversations.length === 0) {
     return <p className="p-4 text-sm text-muted-foreground">Nenhuma conversa ainda.</p>;
   }
 
   return (
     <div className="flex flex-col gap-1 overflow-y-auto p-2">
-      {data.map((conversation) => (
+      {conversations.map((conversation) => (
         <button
           key={conversation.id}
           type="button"

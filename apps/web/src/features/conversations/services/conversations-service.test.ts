@@ -8,6 +8,9 @@ function buildRepository(overrides: Partial<ConversationsRepository> = {}): Conv
     listMessages: vi.fn(),
     submitFeedback: vi.fn(),
     listFeedbackForDecisions: vi.fn(),
+    findOrCreateOutboundConversation: vi.fn(),
+    insertMessage: vi.fn(),
+    insertAiDecision: vi.fn(),
     ...overrides,
   };
 }

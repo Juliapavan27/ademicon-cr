@@ -11,6 +11,7 @@
     "test": "vitest run --passWithNoTests"
   },
   "dependencies": {
+    "@ademicon/ai-providers": "workspace:*",
     "@ademicon/database-types": "workspace:*",
     "@ademicon/domain": "workspace:*",
     "@ademicon/ui": "workspace:*",

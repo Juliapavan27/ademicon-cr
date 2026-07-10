@@ -20,6 +20,9 @@ importers:
 
   apps/web:
     dependencies:
+      '@ademicon/ai-providers':
+        specifier: workspace:*
+        version: link:../../packages/ai-providers
       '@ademicon/database-types':
         specifier: workspace:*
         version: link:../../packages/database-types

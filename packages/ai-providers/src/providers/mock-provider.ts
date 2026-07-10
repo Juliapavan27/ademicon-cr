@@ -28,9 +28,16 @@ export class MockProvider implements LlmProvider {
       toolCalls.push({ toolName: "classify_lead", args, result });
     }
 
+    let scheduledFor: Date | null = null;
     if (SCHEDULING_KEYWORDS.some((kw) => normalized.includes(kw))) {
+      const scheduleMeetingHandler = input.handlers?.schedule_meeting;
       const createTaskHandler = input.handlers?.create_task;
-      if (createTaskHandler) {
+      if (scheduleMeetingHandler) {
+        scheduledFor = nextBusinessDayAt(14);
+        const args = { proposedDateTime: scheduledFor.toISOString(), motivo: "Lead demonstrou interesse em conversar/agendar." };
+        const result = await scheduleMeetingHandler(args);
+        toolCalls.push({ toolName: "schedule_meeting", args, result });
+      } else if (createTaskHandler) {
         const args = { title: "Retornar contato para agendar reunião", dueDate: undefined };
         const result = await createTaskHandler(args);
         toolCalls.push({ toolName: "create_task", args, result });
@@ -38,7 +45,9 @@ export class MockProvider implements LlmProvider {
     }
 
     let text: string;
-    if (PRICE_OBJECTION_KEYWORDS.some((kw) => normalized.includes(kw))) {
+    if (scheduledFor) {
+      text = `Perfeito! Já agendei uma conversa com um dos nossos consultores para ${formatPtBr(scheduledFor)}. Qualquer imprevisto, me avisa por aqui. 🙂`;
+    } else if (PRICE_OBJECTION_KEYWORDS.some((kw) => normalized.includes(kw))) {
       text =
         "Entendo a preocupação com o valor! O consórcio costuma sair bem mais em conta que financiamento, " +
         "porque você não paga juros — só uma taxa de administração. Posso te mostrar uma simulação rapidinho?";
@@ -57,4 +66,24 @@ export class MockProvider implements LlmProvider {
       provider: this.name,
     };
   }
+}
+
+function nextBusinessDayAt(hour: number): Date {
+  const date = new Date();
+  date.setDate(date.getDate() + 1);
+  while (date.getDay() === 0 || date.getDay() === 6) {
+    date.setDate(date.getDate() + 1);
+  }
+  date.setHours(hour, 0, 0, 0);
+  return date;
+}
+
+function formatPtBr(date: Date): string {
+  return new Intl.DateTimeFormat("pt-BR", {
+    weekday: "long",
+    day: "2-digit",
+    month: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(date);
 }

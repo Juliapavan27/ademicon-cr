@@ -1,4 +1,4 @@
-export type LeadSource = "whatsapp" | "site" | "indicacao" | "manual";
+export type LeadSource = "whatsapp" | "site" | "indicacao" | "manual" | "import";
 export type LeadStatus = "active" | "won" | "lost" | "archived";
 
 export interface Lead {

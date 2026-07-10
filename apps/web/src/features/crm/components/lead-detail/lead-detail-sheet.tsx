@@ -7,6 +7,7 @@ import { useLead } from "../../hooks/use-lead-detail";
 import { AttachmentsTab } from "./attachments-tab";
 import { DealValueEditor } from "./deal-value-editor";
 import { HistoryTab } from "./history-tab";
+import { InitiateContactButton } from "./initiate-contact-button";
 import { LeadScoreAdjuster } from "./lead-score-adjuster";
 import { LeadTagsEditor } from "./lead-tags-editor";
 import { NotesTab } from "./notes-tab";
@@ -40,6 +41,7 @@ export function LeadDetailSheet({
               </div>
             </SheetHeader>
             <div className="flex flex-col gap-4 px-4 pb-4">
+              <InitiateContactButton leadId={lead.id} />
               <LeadScoreAdjuster lead={lead} />
               <DealValueEditor lead={lead} />
               <LeadTagsEditor lead={lead} />

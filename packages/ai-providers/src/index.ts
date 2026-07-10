@@ -8,4 +8,5 @@ export * from "./tools/classify-lead.tool";
 export * from "./tools/create-task.tool";
 export * from "./tools/update-crm-stage.tool";
 export * from "./tools/summarize-conversation.tool";
+export * from "./tools/schedule-meeting.tool";
 export * from "./prompts/base-prompt";

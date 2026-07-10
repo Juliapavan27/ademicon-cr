@@ -11,6 +11,7 @@ const SOURCE_LABELS: Record<Lead["source"], string> = {
   site: "Site",
   indicacao: "Indicação",
   manual: "Manual",
+  import: "Importado",
 };
 
 export function LeadCard({ lead, onOpen }: { lead: Lead; onOpen: (leadId: string) => void }) {

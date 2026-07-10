@@ -30,6 +30,22 @@ describe("MockProvider", () => {
     expect(output.toolCalls.some((call) => call.toolName === "create_task")).toBe(true);
   });
 
+  it("schedules a meeting instead of creating a task when a schedule_meeting handler is provided", async () => {
+    const createTaskHandler = vi.fn();
+    const scheduleMeetingHandler = vi.fn().mockResolvedValue({ id: "appt-1" });
+    const provider = new MockProvider();
+
+    const output = await provider.generateResponse({
+      messages: [{ role: "user", content: "Sim, pode agendar uma reunião comigo" }],
+      handlers: { create_task: createTaskHandler, schedule_meeting: scheduleMeetingHandler },
+    });
+
+    expect(scheduleMeetingHandler).toHaveBeenCalledTimes(1);
+    expect(createTaskHandler).not.toHaveBeenCalled();
+    expect(output.toolCalls[0]?.toolName).toBe("schedule_meeting");
+    expect(output.text.toLowerCase()).toContain("agendei");
+  });
+
   it("replies with objection handling when the message mentions price", async () => {
     const provider = new MockProvider();
     const output = await provider.generateResponse({

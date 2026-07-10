@@ -6,6 +6,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useLeads, useMoveLeadStage, usePipelineStages } from "../../hooks/use-leads";
 import { LeadDetailSheet } from "../lead-detail/lead-detail-sheet";
 import { CreateLeadDialog } from "./create-lead-dialog";
+import { ImportLeadsDialog } from "./import-leads-dialog";
 import { KanbanColumn } from "./kanban-column";
 
 export function KanbanBoard() {
@@ -42,7 +43,8 @@ export function KanbanBoard() {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex justify-end">
+      <div className="flex justify-end gap-2">
+        <ImportLeadsDialog />
         <CreateLeadDialog />
       </div>
       <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
