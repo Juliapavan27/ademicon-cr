@@ -27,6 +27,7 @@ export interface CrmRepository {
   createLead(input: CreateLeadInput): Promise<Lead>;
   moveLeadStage(leadId: string, stageId: string, status?: LeadStatus): Promise<void>;
   adjustLeadScore(leadId: string, currentScore: number, delta: number, motivo: string): Promise<void>;
+  updateSuggestedApproach(leadId: string, approach: string): Promise<void>;
 
   getDeal(leadId: string): Promise<Deal | null>;
   upsertDealValue(leadId: string, organizationId: string, valorEstimado: number): Promise<void>;

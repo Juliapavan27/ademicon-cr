@@ -2,6 +2,7 @@
 
 import { useDraggable } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
+import { CheckCircle2, XCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import type { Lead } from "../../domain/lead";
@@ -34,9 +35,17 @@ export function LeadCard({ lead, onOpen }: { lead: Lead; onOpen: (leadId: string
     >
       <div className="flex items-start justify-between gap-2">
         <span className="text-sm font-medium">{lead.fullName}</span>
-        <Badge variant="outline" className="shrink-0 text-xs">
-          {lead.leadScore}
-        </Badge>
+        <div className="flex shrink-0 items-center gap-1">
+          {lead.whatsappStatus === "valid" && (
+            <CheckCircle2 className="size-3.5 text-green-600" aria-label="WhatsApp válido" />
+          )}
+          {lead.whatsappStatus === "invalid" && (
+            <XCircle className="size-3.5 text-destructive" aria-label="WhatsApp inválido" />
+          )}
+          <Badge variant="outline" className="text-xs">
+            {lead.leadScore}
+          </Badge>
+        </div>
       </div>
       {lead.tags.length > 0 && (
         <div className="flex flex-wrap gap-1">

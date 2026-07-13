@@ -104,3 +104,22 @@ export async function sendWhatsAppMessage(sock: WASocket, to: string, text: stri
   const jid = to.includes("@") ? to : `${to}@s.whatsapp.net`;
   await sock.sendMessage(jid, { text });
 }
+
+/**
+ * Checks which of the given phone numbers actually have an active WhatsApp
+ * account, via Baileys' `onWhatsApp` — this is the only way to validate a
+ * number before ever messaging it, and requires a live connected socket.
+ */
+export async function checkNumbersOnWhatsApp(
+  sock: WASocket,
+  phones: string[],
+): Promise<Record<string, boolean>> {
+  const results = (await sock.onWhatsApp(...phones)) ?? [];
+  const found = new Map(results.map((entry) => [entry.jid.replace(/@.*/, ""), Boolean(entry.exists)]));
+  const byPhone: Record<string, boolean> = {};
+  for (const phone of phones) {
+    const digits = phone.replace(/\D/g, "");
+    byPhone[phone] = found.get(digits) ?? false;
+  }
+  return byPhone;
+}

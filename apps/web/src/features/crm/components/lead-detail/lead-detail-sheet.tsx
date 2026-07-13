@@ -42,6 +42,14 @@ export function LeadDetailSheet({
               </div>
             </SheetHeader>
             <div className="flex flex-col gap-4 px-4 pb-4">
+              {lead.suggestedApproach && (
+                <div className="rounded-lg border border-dashed bg-muted/40 p-3 text-sm">
+                  <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                    Abordagem sugerida pela IA
+                  </p>
+                  <p className="text-muted-foreground">{lead.suggestedApproach}</p>
+                </div>
+              )}
               <InitiateContactButton leadId={lead.id} />
               <LeadScoreAdjuster lead={lead} />
               <DealValueEditor lead={lead} />

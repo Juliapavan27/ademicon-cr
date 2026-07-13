@@ -71,7 +71,13 @@ export function AppointmentsList() {
                 <TableRow key={appointment.id}>
                   <TableCell className="font-medium">{appointment.leadName}</TableCell>
                   <TableCell className="tabular-nums">{formatDateTime(appointment.scheduledAt)}</TableCell>
-                  <TableCell className="text-muted-foreground">{appointment.consultantName}</TableCell>
+                  <TableCell className="text-muted-foreground">
+                    {appointment.consultantName ?? (
+                      <Badge variant="secondary" className="text-xs">
+                        Aguardando distribuição
+                      </Badge>
+                    )}
+                  </TableCell>
                   <TableCell>
                     <Badge variant={appointment.source === "ai_scheduled" ? "default" : "outline"} className="text-xs">
                       {appointment.source === "ai_scheduled" ? "Agendado pela IA" : "Manual"}

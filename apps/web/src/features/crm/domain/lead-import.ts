@@ -15,6 +15,44 @@ const HEADER_ALIASES: Record<keyof Omit<ParsedLeadRow, "fullName">, string[]> = 
 
 const NAME_ALIASES = ["nome", "name", "lead", "cliente"];
 
+/**
+ * Maps a table of raw string cells (already split into rows/columns, from
+ * either a CSV/TSV parse or a spreadsheet library) into ParsedLeadRow[].
+ * Header row is required; column order is flexible and matched
+ * case-insensitively against common Portuguese/English aliases. Falls back
+ * to the first column as the name when no header alias matches, so a
+ * headerless single-column list of names still imports.
+ */
+export function mapRowsToLeads(rows: string[][]): ParsedLeadRow[] {
+  const nonEmptyRows = rows
+    .map((row) => row.map((cell) => (cell ?? "").toString().trim()))
+    .filter((row) => row.some((cell) => cell.length > 0));
+
+  if (nonEmptyRows.length === 0) return [];
+
+  const headers = nonEmptyRows[0].map((h) => h.toLowerCase());
+  const nameIndex = headers.findIndex((h) => NAME_ALIASES.includes(h));
+  const columnIndex = {
+    phone: headers.findIndex((h) => HEADER_ALIASES.phone.includes(h)),
+    email: headers.findIndex((h) => HEADER_ALIASES.email.includes(h)),
+    company: headers.findIndex((h) => HEADER_ALIASES.company.includes(h)),
+    note: headers.findIndex((h) => HEADER_ALIASES.note.includes(h)),
+  };
+
+  const hasRecognizedHeader = nameIndex >= 0 || Object.values(columnIndex).some((i) => i >= 0);
+  const dataRows = hasRecognizedHeader ? nonEmptyRows.slice(1) : nonEmptyRows;
+
+  return dataRows
+    .map((cols) => ({
+      fullName: (nameIndex >= 0 ? cols[nameIndex] : cols[0]) ?? "",
+      phone: columnIndex.phone >= 0 ? cols[columnIndex.phone] || undefined : undefined,
+      email: columnIndex.email >= 0 ? cols[columnIndex.email] || undefined : undefined,
+      company: columnIndex.company >= 0 ? cols[columnIndex.company] || undefined : undefined,
+      note: columnIndex.note >= 0 ? cols[columnIndex.note] || undefined : undefined,
+    }))
+    .filter((row) => row.fullName.length > 0);
+}
+
 function detectDelimiter(headerLine: string): string {
   return headerLine.includes("\t") ? "\t" : ",";
 }
@@ -24,11 +62,8 @@ function splitLine(line: string, delimiter: string): string[] {
 }
 
 /**
- * Parses a pasted or uploaded lead list (CSV or tab-separated, as copied
- * directly from a spreadsheet). Header row is required; column order is
- * flexible and matched case-insensitively against common Portuguese/English
- * aliases. Falls back to the first column as the name when no header alias
- * matches, so a headerless single-column list of names still imports.
+ * Parses a pasted lead list (CSV or tab-separated, as copied directly from
+ * a spreadsheet) into rows of cells, then maps them via `mapRowsToLeads`.
  */
 export function parseLeadsCsv(raw: string): ParsedLeadRow[] {
   const lines = raw
@@ -40,27 +75,5 @@ export function parseLeadsCsv(raw: string): ParsedLeadRow[] {
   if (lines.length === 0) return [];
 
   const delimiter = detectDelimiter(lines[0]);
-  const headers = splitLine(lines[0], delimiter).map((h) => h.toLowerCase());
-
-  const nameIndex = headers.findIndex((h) => NAME_ALIASES.includes(h));
-  const columnIndex = {
-    phone: headers.findIndex((h) => HEADER_ALIASES.phone.includes(h)),
-    email: headers.findIndex((h) => HEADER_ALIASES.email.includes(h)),
-    company: headers.findIndex((h) => HEADER_ALIASES.company.includes(h)),
-    note: headers.findIndex((h) => HEADER_ALIASES.note.includes(h)),
-  };
-
-  const hasRecognizedHeader = nameIndex >= 0 || Object.values(columnIndex).some((i) => i >= 0);
-  const dataLines = hasRecognizedHeader ? lines.slice(1) : lines;
-
-  return dataLines
-    .map((line) => splitLine(line, delimiter))
-    .map((cols) => ({
-      fullName: (nameIndex >= 0 ? cols[nameIndex] : cols[0]) ?? "",
-      phone: columnIndex.phone >= 0 ? cols[columnIndex.phone] || undefined : undefined,
-      email: columnIndex.email >= 0 ? cols[columnIndex.email] || undefined : undefined,
-      company: columnIndex.company >= 0 ? cols[columnIndex.company] || undefined : undefined,
-      note: columnIndex.note >= 0 ? cols[columnIndex.note] || undefined : undefined,
-    }))
-    .filter((row) => row.fullName.length > 0);
+  return mapRowsToLeads(lines.map((line) => splitLine(line, delimiter)));
 }

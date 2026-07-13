@@ -186,7 +186,7 @@ export type Database = {
       }
       appointments: {
         Row: {
-          consultant_id: string
+          consultant_id: string | null
           created_at: string
           duration_minutes: number
           external_event_id: string | null
@@ -198,7 +198,7 @@ export type Database = {
           status: string
         }
         Insert: {
-          consultant_id: string
+          consultant_id?: string | null
           created_at?: string
           duration_minutes?: number
           external_event_id?: string | null
@@ -210,7 +210,7 @@ export type Database = {
           status?: string
         }
         Update: {
-          consultant_id?: string
+          consultant_id?: string | null
           created_at?: string
           duration_minutes?: number
           external_event_id?: string | null
@@ -897,7 +897,9 @@ export type Database = {
           source: string
           specialty_id: string | null
           status: string
+          suggested_approach: string | null
           updated_at: string
+          whatsapp_status: string
         }
         Insert: {
           assigned_consultant_id?: string | null
@@ -916,7 +918,9 @@ export type Database = {
           source?: string
           specialty_id?: string | null
           status?: string
+          suggested_approach?: string | null
           updated_at?: string
+          whatsapp_status?: string
         }
         Update: {
           assigned_consultant_id?: string | null
@@ -935,7 +939,9 @@ export type Database = {
           source?: string
           specialty_id?: string | null
           status?: string
+          suggested_approach?: string | null
           updated_at?: string
+          whatsapp_status?: string
         }
         Relationships: [
           {
@@ -1167,6 +1173,47 @@ export type Database = {
           slug?: string
         }
         Relationships: []
+      }
+      outreach_cadence_steps: {
+        Row: {
+          created_at: string
+          id: string
+          lead_id: string
+          message_text: string
+          scheduled_at: string
+          sent_at: string | null
+          status: string
+          step_number: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          lead_id: string
+          message_text: string
+          scheduled_at: string
+          sent_at?: string | null
+          status?: string
+          step_number: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          lead_id?: string
+          message_text?: string
+          scheduled_at?: string
+          sent_at?: string | null
+          status?: string
+          step_number?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "outreach_cadence_steps_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       partner_rankings: {
         Row: {

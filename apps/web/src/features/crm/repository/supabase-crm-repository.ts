@@ -17,7 +17,7 @@ function toList<T>(relation: T | T[] | null | undefined): T[] {
   return Array.isArray(relation) ? relation : [relation];
 }
 
-const LEAD_SELECT = "id, organization_id, full_name, email, phone, company, source, specialty_id, city_id, current_stage_id, assigned_consultant_id, lead_score, status, created_at, updated_at, lead_tags(tags(id, organization_id, name, color))";
+const LEAD_SELECT = "id, organization_id, full_name, email, phone, company, source, specialty_id, city_id, current_stage_id, assigned_consultant_id, lead_score, status, whatsapp_status, suggested_approach, created_at, updated_at, lead_tags(tags(id, organization_id, name, color))";
 
 type LeadRow = {
   id: string;
@@ -33,6 +33,8 @@ type LeadRow = {
   assigned_consultant_id: string | null;
   lead_score: number;
   status: string;
+  whatsapp_status: string;
+  suggested_approach: string | null;
   created_at: string;
   updated_at: string;
   lead_tags: { tags: Tag | Tag[] | null }[];
@@ -53,6 +55,8 @@ function mapLead(row: LeadRow): Lead {
     assignedConsultantId: row.assigned_consultant_id,
     leadScore: row.lead_score,
     status: row.status as Lead["status"],
+    whatsappStatus: row.whatsapp_status as Lead["whatsappStatus"],
+    suggestedApproach: row.suggested_approach,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
     tags: row.lead_tags.flatMap((entry) => toList(entry.tags)),
@@ -162,6 +166,11 @@ export class SupabaseCrmRepository implements CrmRepository {
       gerado_por: "manual",
     });
     if (historyError) throw historyError;
+  }
+
+  async updateSuggestedApproach(leadId: string, approach: string): Promise<void> {
+    const { error } = await this.supabase.from("leads").update({ suggested_approach: approach }).eq("id", leadId);
+    if (error) throw error;
   }
 
   async listTags(): Promise<Tag[]> {

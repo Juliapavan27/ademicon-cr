@@ -1,9 +1,12 @@
 import { ProviderFactory, type ChatMessage } from "@ademicon/ai-providers";
+import { composeSuggestedApproach } from "@/features/conversations/domain/cold-outreach";
 import type { CrmRepository } from "../domain/crm-repository";
 import type { ParsedLeadRow } from "../domain/lead-import";
 
 export interface ImportedLeadResult {
+  leadId: string;
   fullName: string;
+  company: string | null;
   score: number;
   motivo: string;
 }
@@ -53,10 +56,14 @@ export class LeadImportService {
       });
 
       await this.repository.adjustLeadScore(lead.id, lead.leadScore, score - lead.leadScore, motivo);
+      await this.repository.updateSuggestedApproach(
+        lead.id,
+        composeSuggestedApproach({ fullName: row.fullName, company: row.company, note: row.note }),
+      );
       if (row.note) {
         await this.repository.createNote(lead.id, `Observação da importação: ${row.note}`);
       }
-      results.push({ fullName: row.fullName, score, motivo });
+      results.push({ leadId: lead.id, fullName: row.fullName, company: lead.company, score, motivo });
     }
 
     return results;

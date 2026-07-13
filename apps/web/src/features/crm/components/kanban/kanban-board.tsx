@@ -5,6 +5,7 @@ import { DndContext, type DragEndEvent, PointerSensor, useSensor, useSensors } f
 import { Skeleton } from "@/components/ui/skeleton";
 import { useLeads, useMoveLeadStage, usePipelineStages } from "../../hooks/use-leads";
 import { LeadDetailSheet } from "../lead-detail/lead-detail-sheet";
+import { CheckWhatsAppButton } from "./check-whatsapp-button";
 import { CreateLeadDialog } from "./create-lead-dialog";
 import { ImportLeadsDialog } from "./import-leads-dialog";
 import { KanbanColumn } from "./kanban-column";
@@ -44,6 +45,7 @@ export function KanbanBoard() {
   return (
     <div className="flex flex-col gap-4">
       <div className="flex justify-end gap-2">
+        <CheckWhatsAppButton />
         <ImportLeadsDialog />
         <CreateLeadDialog />
       </div>

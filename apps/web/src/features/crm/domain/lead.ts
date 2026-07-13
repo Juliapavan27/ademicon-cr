@@ -1,5 +1,6 @@
 export type LeadSource = "whatsapp" | "site" | "indicacao" | "manual" | "import";
 export type LeadStatus = "active" | "won" | "lost" | "archived";
+export type WhatsappStatus = "not_checked" | "valid" | "invalid";
 
 export interface Lead {
   id: string;
@@ -15,6 +16,8 @@ export interface Lead {
   assignedConsultantId: string | null;
   leadScore: number;
   status: LeadStatus;
+  whatsappStatus: WhatsappStatus;
+  suggestedApproach: string | null;
   tags: Tag[];
   createdAt: string;
   updatedAt: string;
