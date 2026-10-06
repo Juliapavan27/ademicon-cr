@@ -11,7 +11,7 @@ Get-CimInstance Win32_Process -Filter "Name = 'powershell.exe'" |
     ForEach-Object { Invoke-CimMethod -InputObject $_ -MethodName Terminate | Out-Null }
 
 New-Item -ItemType Directory -Force -Path $destino | Out-Null
-Copy-Item -Force -Path (Join-Path $PSScriptRoot 'bater-ponto.ps1'), (Join-Path $PSScriptRoot 'monitor.ps1') -Destination $destino
+Copy-Item -Force -Path (Join-Path $PSScriptRoot 'bater-ponto.ps1'), (Join-Path $PSScriptRoot 'monitor.ps1'), (Join-Path $PSScriptRoot 'aviso-cabecalho.jpg') -Destination $destino
 
 $shell = New-Object -ComObject WScript.Shell
 function Novo-Atalho($pasta, $nome, $argumentos, $icone) {
