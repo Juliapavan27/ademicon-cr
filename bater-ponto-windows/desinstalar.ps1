@@ -3,6 +3,16 @@ Get-CimInstance Win32_Process -Filter "Name = 'powershell.exe'" |
     Where-Object { $_.CommandLine -like '*BaterPonto*monitor.ps1*' } |
     ForEach-Object { Invoke-CimMethod -InputObject $_ -MethodName Terminate | Out-Null }
 
+# Devolve o Windows + L e o botao de energia ao normal.
+[Microsoft.Win32.Registry]::SetValue('HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Policies\System', 'DisableLockWorkstation', 0, 'DWord')
+$original = Join-Path $env:LOCALAPPDATA 'BaterPonto\botao-energia-original.txt'
+if (Test-Path $original) {
+    $ac, $dc = (Get-Content $original -Raw).Trim() -split ' '
+    powercfg /setacvalueindex SCHEME_CURRENT SUB_BUTTONS PBUTTONACTION ([Convert]::ToInt32($ac, 16))
+    powercfg /setdcvalueindex SCHEME_CURRENT SUB_BUTTONS PBUTTONACTION ([Convert]::ToInt32($dc, 16))
+    powercfg /setactive SCHEME_CURRENT
+}
+
 $desktop = [Environment]::GetFolderPath('Desktop')
 Remove-Item -Force -ErrorAction SilentlyContinue -Path @(
     (Join-Path ([Environment]::GetFolderPath('Startup')) 'Bater Ponto (monitor).lnk'),

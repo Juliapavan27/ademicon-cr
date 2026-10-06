@@ -39,6 +39,17 @@ foreach ($pasta in @([Environment]::GetFolderPath('Desktop'), $menu)) {
     Novo-Atalho $pasta 'Bloquear tela (Bater Ponto)' "$aviso -Acao Bloquear" "$env:SystemRoot\System32\shell32.dll,47"
 }
 
+# Botao de energia passa a "Desligar", para cair na tela de desligamento com o aviso BATER PONTO
+# (a suspensao nao pode ser interrompida pelo Windows). Guarda a configuracao original.
+$original = Join-Path $destino 'botao-energia-original.txt'
+if (-not (Test-Path $original)) {
+    $valores = [regex]::Matches((powercfg /query SCHEME_CURRENT SUB_BUTTONS PBUTTONACTION | Out-String), '0x[0-9a-fA-F]+')
+    if ($valores.Count -ge 2) { Set-Content -Path $original -Value "$($valores[0].Value) $($valores[1].Value)" }
+}
+powercfg /setacvalueindex SCHEME_CURRENT SUB_BUTTONS PBUTTONACTION 3
+powercfg /setdcvalueindex SCHEME_CURRENT SUB_BUTTONS PBUTTONACTION 3
+powercfg /setactive SCHEME_CURRENT
+
 # Liga o monitor agora (ele ja mostra o primeiro aviso).
 Start-Process -FilePath $ps -ArgumentList $monitor -WindowStyle Hidden
 

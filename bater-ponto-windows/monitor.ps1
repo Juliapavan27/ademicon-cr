@@ -1,7 +1,8 @@
 ﻿# Roda escondido desde o login e:
 #   - mostra "BATER PONTO" ao entrar no Windows, ao voltar da suspensao e ao desbloquear a tela;
-#   - segura o desligamento/reinicio pelo menu Iniciar exibindo "BATER PONTO" na tela do Windows
-#     (basta clicar em "Desligar mesmo assim" depois de bater o ponto).
+#   - troca o Windows + L: primeiro mostra o aviso e so bloqueia depois de "Ja bati o ponto";
+#   - segura o desligamento (menu Iniciar ou botao de energia) exibindo "BATER PONTO" na tela do
+#     Windows (basta clicar em "Desligar mesmo assim" depois de bater o ponto).
 
 $aviso = Join-Path $PSScriptRoot 'bater-ponto.ps1'
 $flag = Join-Path $env:TEMP 'bater-ponto-autorizado.txt'
@@ -16,6 +17,7 @@ using System.Drawing;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
+using Microsoft.Win32;
 
 public class BaterPontoMonitor : Form
 {
@@ -26,21 +28,46 @@ public class BaterPontoMonitor : Form
     [DllImport("wtsapi32.dll")]
     static extern bool WTSRegisterSessionNotification(IntPtr hWnd, int flags);
 
+    delegate IntPtr HookProc(int nCode, IntPtr wParam, IntPtr lParam);
+    [DllImport("user32.dll", SetLastError = true)]
+    static extern IntPtr SetWindowsHookEx(int idHook, HookProc lpfn, IntPtr hMod, uint dwThreadId);
+    [DllImport("user32.dll")]
+    static extern bool UnhookWindowsHookEx(IntPtr hhk);
+    [DllImport("user32.dll")]
+    static extern IntPtr CallNextHookEx(IntPtr hhk, int nCode, IntPtr wParam, IntPtr lParam);
+    [DllImport("user32.dll")]
+    static extern short GetAsyncKeyState(int vKey);
+    [DllImport("kernel32.dll", CharSet = CharSet.Unicode)]
+    static extern IntPtr GetModuleHandle(string lpModuleName);
+
     const int WM_QUERYENDSESSION = 0x11;
     const int WM_POWERBROADCAST = 0x218;
     const int WM_WTSSESSION_CHANGE = 0x2B1;
+    const int PBT_APMSUSPEND = 0x4;
     const int PBT_APMRESUMESUSPEND = 0x7;
     const int PBT_APMRESUMEAUTOMATIC = 0x12;
+    const int WTS_SESSION_LOCK = 0x7;
     const int WTS_SESSION_UNLOCK = 0x8;
+    const int WH_KEYBOARD_LL = 13;
+    const int WM_KEYDOWN = 0x100;
+    const int WM_SYSKEYDOWN = 0x104;
+    const int VK_L = 0x4C;
+    const int VK_LWIN = 0x5B;
+    const int VK_RWIN = 0x5C;
+
+    const string ChavePolitica = @"HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Policies\System";
 
     readonly string avisoScript;
     readonly string flagFile;
+    readonly HookProc hookProc;
+    IntPtr hook = IntPtr.Zero;
     DateTime ultimoAviso = DateTime.MinValue;
 
     public BaterPontoMonitor(string avisoScript, string flagFile)
     {
         this.avisoScript = avisoScript;
         this.flagFile = flagFile;
+        hookProc = TeclaPressionada;
         Text = "Bater Ponto - Monitor";
         ShowInTaskbar = false;
         FormBorderStyle = FormBorderStyle.None;
@@ -50,16 +77,47 @@ public class BaterPontoMonitor : Form
         Opacity = 0;
     }
 
+    // Com o bloqueio do Windows desligado, o Windows + L nao faz nada e quem bloqueia
+    // a tela e o bater-ponto.ps1, depois do aviso.
+    public static void BloqueioDoWindows(bool ligado)
+    {
+        try { Registry.SetValue(ChavePolitica, "DisableLockWorkstation", ligado ? 0 : 1, RegistryValueKind.DWord); }
+        catch { }
+    }
+
     protected override void OnHandleCreated(EventArgs e)
     {
         base.OnHandleCreated(e);
         WTSRegisterSessionNotification(Handle, 0);
+        BloqueioDoWindows(false);
+        hook = SetWindowsHookEx(WH_KEYBOARD_LL, hookProc, GetModuleHandle("user32.dll"), 0);
+    }
+
+    protected override void OnFormClosed(FormClosedEventArgs e)
+    {
+        if (hook != IntPtr.Zero) UnhookWindowsHookEx(hook);
+        BloqueioDoWindows(true);
+        base.OnFormClosed(e);
     }
 
     protected override void OnShown(EventArgs e)
     {
         base.OnShown(e);
-        Avisar();
+        Avisar("Aviso");
+    }
+
+    IntPtr TeclaPressionada(int nCode, IntPtr wParam, IntPtr lParam)
+    {
+        if (nCode >= 0)
+        {
+            int msg = wParam.ToInt32();
+            if ((msg == WM_KEYDOWN || msg == WM_SYSKEYDOWN) && Marshal.ReadInt32(lParam) == VK_L
+                && (GetAsyncKeyState(VK_LWIN) < 0 || GetAsyncKeyState(VK_RWIN) < 0))
+            {
+                BeginInvoke((MethodInvoker)delegate { Avisar("Bloquear"); });
+            }
+        }
+        return CallNextHookEx(hook, nCode, wParam, lParam);
     }
 
     bool DesligamentoAutorizado()
@@ -68,12 +126,15 @@ public class BaterPontoMonitor : Form
             && (DateTime.Now - File.GetLastWriteTime(flagFile)).TotalMinutes < 2;
     }
 
-    void Avisar()
+    void Avisar(string acao)
     {
-        if ((DateTime.Now - ultimoAviso).TotalSeconds < 10) return;
-        ultimoAviso = DateTime.Now;
+        if (acao == "Aviso")
+        {
+            if ((DateTime.Now - ultimoAviso).TotalSeconds < 10) return;
+            ultimoAviso = DateTime.Now;
+        }
         var info = new ProcessStartInfo("powershell.exe",
-            "-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -STA -File \"" + avisoScript + "\"");
+            "-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -STA -File \"" + avisoScript + "\" -Acao " + acao);
         info.UseShellExecute = false;
         info.CreateNoWindow = true;
         try { Process.Start(info); } catch { }
@@ -97,10 +158,14 @@ public class BaterPontoMonitor : Form
                 return;
             case WM_POWERBROADCAST:
                 int evento = m.WParam.ToInt32();
-                if (evento == PBT_APMRESUMESUSPEND || evento == PBT_APMRESUMEAUTOMATIC) Avisar();
+                // Religa o bloqueio antes de suspender, para o Windows pedir a senha ao voltar.
+                if (evento == PBT_APMSUSPEND) BloqueioDoWindows(true);
+                if (evento == PBT_APMRESUMESUSPEND || evento == PBT_APMRESUMEAUTOMATIC) Avisar("Aviso");
                 break;
             case WM_WTSSESSION_CHANGE:
-                if (m.WParam.ToInt32() == WTS_SESSION_UNLOCK) Avisar();
+                int sessao = m.WParam.ToInt32();
+                if (sessao == WTS_SESSION_LOCK || sessao == WTS_SESSION_UNLOCK) BloqueioDoWindows(false);
+                if (sessao == WTS_SESSION_UNLOCK) Avisar("Aviso");
                 break;
         }
         base.WndProc(ref m);
@@ -108,4 +173,8 @@ public class BaterPontoMonitor : Form
 }
 '@
 
-[System.Windows.Forms.Application]::Run((New-Object BaterPontoMonitor -ArgumentList $aviso, $flag))
+try {
+    [System.Windows.Forms.Application]::Run((New-Object BaterPontoMonitor -ArgumentList $aviso, $flag))
+} finally {
+    [BaterPontoMonitor]::BloqueioDoWindows($true)
+}

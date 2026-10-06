@@ -11,11 +11,9 @@ param(
 Add-Type -AssemblyName System.Windows.Forms, System.Drawing
 
 # Evita varios avisos empilhados (ex.: voltar da suspensao + desbloquear a tela).
-if ($Acao -eq 'Aviso') {
-    $criado = $false
-    $mutex = New-Object System.Threading.Mutex($true, 'Local\BaterPontoAviso', [ref]$criado)
-    if (-not $criado) { exit }
-}
+$criado = $false
+$mutex = New-Object System.Threading.Mutex($true, 'Local\BaterPontoAviso', [ref]$criado)
+if (-not $criado) { exit }
 
 $textos = @{
     Aviso     = @('Não esqueça de registrar o seu ponto!', 'OK, entendi')
@@ -80,11 +78,9 @@ if ($Acao -eq 'Aviso') {
 
 $form.Add_Shown({ $form.Activate() })
 $resultado = $form.ShowDialog()
+$mutex.ReleaseMutex()
 
-if ($Acao -eq 'Aviso') {
-    $mutex.ReleaseMutex()
-    exit
-}
+if ($Acao -eq 'Aviso') { exit }
 if ($resultado -ne [System.Windows.Forms.DialogResult]::OK) { exit }
 
 # Avisa o monitor que este desligamento ja foi confirmado, para ele nao bloquear.
@@ -99,5 +95,9 @@ public static extern bool SetSuspendState(bool hibernate, bool forceCritical, bo
         [BaterPonto.Energia]::SetSuspendState($false, $false, $false) | Out-Null
     }
     'Desligar' { Stop-Computer }
-    'Bloquear' { rundll32.exe user32.dll,LockWorkStation }
+    'Bloquear' {
+        # O monitor desliga o bloqueio do Windows para segurar o Windows + L; religa so para bloquear agora.
+        [Microsoft.Win32.Registry]::SetValue('HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Policies\System', 'DisableLockWorkstation', 0, 'DWord')
+        rundll32.exe user32.dll,LockWorkStation
+    }
 }
