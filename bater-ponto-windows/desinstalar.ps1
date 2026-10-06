@@ -8,8 +8,8 @@ Get-CimInstance Win32_Process -Filter "Name = 'powershell.exe'" |
 $original = Join-Path $env:LOCALAPPDATA 'BaterPonto\botao-energia-original.txt'
 if (Test-Path $original) {
     $ac, $dc = (Get-Content $original -Raw).Trim() -split ' '
-    powercfg /setacvalueindex SCHEME_CURRENT SUB_BUTTONS PBUTTONACTION ([Convert]::ToInt32($ac, 16))
-    powercfg /setdcvalueindex SCHEME_CURRENT SUB_BUTTONS PBUTTONACTION ([Convert]::ToInt32($dc, 16))
+    powercfg /setacvalueindex SCHEME_CURRENT 4f971e89-eebd-4455-a8de-9e59040e7347 7648efa3-dd9c-4e3e-b566-50f929386280 ([Convert]::ToInt32($ac, 16))
+    powercfg /setdcvalueindex SCHEME_CURRENT 4f971e89-eebd-4455-a8de-9e59040e7347 7648efa3-dd9c-4e3e-b566-50f929386280 ([Convert]::ToInt32($dc, 16))
     powercfg /setactive SCHEME_CURRENT
 }
 

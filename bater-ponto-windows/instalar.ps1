@@ -43,15 +43,30 @@ foreach ($pasta in @([Environment]::GetFolderPath('Desktop'), $menu)) {
 # (a suspensao nao pode ser interrompida pelo Windows). Guarda a configuracao original.
 $original = Join-Path $destino 'botao-energia-original.txt'
 if (-not (Test-Path $original)) {
-    $valores = [regex]::Matches((powercfg /query SCHEME_CURRENT SUB_BUTTONS PBUTTONACTION | Out-String), '0x[0-9a-fA-F]+')
+    $valores = [regex]::Matches((powercfg /query SCHEME_CURRENT 4f971e89-eebd-4455-a8de-9e59040e7347 7648efa3-dd9c-4e3e-b566-50f929386280 | Out-String), '0x[0-9a-fA-F]+')
     if ($valores.Count -ge 2) { Set-Content -Path $original -Value "$($valores[0].Value) $($valores[1].Value)" }
 }
-powercfg /setacvalueindex SCHEME_CURRENT SUB_BUTTONS PBUTTONACTION 3
-powercfg /setdcvalueindex SCHEME_CURRENT SUB_BUTTONS PBUTTONACTION 3
+powercfg /setacvalueindex SCHEME_CURRENT 4f971e89-eebd-4455-a8de-9e59040e7347 7648efa3-dd9c-4e3e-b566-50f929386280 3
+powercfg /setdcvalueindex SCHEME_CURRENT 4f971e89-eebd-4455-a8de-9e59040e7347 7648efa3-dd9c-4e3e-b566-50f929386280 3
 powercfg /setactive SCHEME_CURRENT
+$botao = [regex]::Matches((powercfg /query SCHEME_CURRENT 4f971e89-eebd-4455-a8de-9e59040e7347 7648efa3-dd9c-4e3e-b566-50f929386280 | Out-String), '0x[0-9a-fA-F]+')
+if ($botao.Count -ge 2 -and [Convert]::ToInt32($botao[0].Value, 16) -eq 3 -and [Convert]::ToInt32($botao[1].Value, 16) -eq 3) {
+    Write-Host 'Botao de energia configurado para Desligar.' -ForegroundColor Green
+} else {
+    Write-Host 'Nao consegui mudar o botao de energia. Abra Painel de Controle > Opcoes de Energia >' -ForegroundColor Yellow
+    Write-Host "'Escolher a funcao dos botoes de energia' e coloque 'Desligar' nas duas colunas." -ForegroundColor Yellow
+    Start-Process 'control.exe' -ArgumentList '/name Microsoft.PowerOptions /page pageGlobalSettings'
+}
 
 # Desfaz o bloqueio do Windows + L da versao anterior, que nao funcionou.
 try { [Microsoft.Win32.Registry]::SetValue('HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Policies\System', 'DisableLockWorkstation', 0, 'DWord') } catch { }
+
+# Desliga o Windows Spotlight (imagens que mudam sozinhas), senao ele troca o cartaz.
+try {
+    $cdm = 'HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager'
+    [Microsoft.Win32.Registry]::SetValue($cdm, 'RotatingLockScreenEnabled', 0, 'DWord')
+    [Microsoft.Win32.Registry]::SetValue($cdm, 'RotatingLockScreenOverlayEnabled', 0, 'DWord')
+} catch { }
 
 # Imagem da tela de bloqueio com "BATER PONTO": aparece assim que a tela bloqueia
 # (Windows + L, tampa, suspensao ou inatividade).

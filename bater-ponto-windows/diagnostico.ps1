@@ -17,7 +17,8 @@ $linhas += "Monitor rodando: $([bool]$monitor)"
 $linhas += "Atalho de inicializacao: " + (Test-Path (Join-Path ([Environment]::GetFolderPath('Startup')) 'Bater Ponto (monitor).lnk'))
 $linhas += "Arquivos instalados: " + ((Get-ChildItem (Join-Path $env:LOCALAPPDATA 'BaterPonto') -ErrorAction SilentlyContinue).Name -join ', ')
 
-$linhas += "Botao de energia (AC DC): " + ([regex]::Matches((powercfg /query SCHEME_CURRENT SUB_BUTTONS PBUTTONACTION | Out-String), '0x[0-9a-fA-F]+').Value -join ' ')
+$linhas += "powercfg: " + ((powercfg /query SCHEME_CURRENT 4f971e89-eebd-4455-a8de-9e59040e7347 7648efa3-dd9c-4e3e-b566-50f929386280 | Out-String).Trim() -replace '\s+', ' ')
+$linhas += "Botao de energia (AC DC): " + ([regex]::Matches((powercfg /query SCHEME_CURRENT 4f971e89-eebd-4455-a8de-9e59040e7347 7648efa3-dd9c-4e3e-b566-50f929386280 | Out-String), '0x[0-9a-fA-F]+').Value -join ' ')
 
 $linhas += "--- Politicas da tela de bloqueio ---"
 foreach ($chave in 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\Personalization', 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\PersonalizationCSP') {
