@@ -61,31 +61,63 @@ if ($botao.Count -ge 2 -and [Convert]::ToInt32($botao[0].Value, 16) -eq 3 -and [
 # Desfaz o bloqueio do Windows + L da versao anterior, que nao funcionou.
 try { [Microsoft.Win32.Registry]::SetValue('HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Policies\System', 'DisableLockWorkstation', 0, 'DWord') } catch { }
 
-# Desliga o Windows Spotlight (imagens que mudam sozinhas), senao ele troca o cartaz.
+# Desliga o Windows Spotlight (imagens que mudam sozinhas), senao ele troca a imagem.
 try {
     $cdm = 'HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager'
     [Microsoft.Win32.Registry]::SetValue($cdm, 'RotatingLockScreenEnabled', 0, 'DWord')
     [Microsoft.Win32.Registry]::SetValue($cdm, 'RotatingLockScreenOverlayEnabled', 0, 'DWord')
 } catch { }
 
-# Imagem da tela de bloqueio com "BATER PONTO": aparece assim que a tela bloqueia
+# Imagem da tela de bloqueio com a marca da empresa e o lembrete: aparece assim que a tela bloqueia
 # (Windows + L, tampa, suspensao ou inatividade).
+# Personalize aqui (cores em hexadecimal). Opcionalmente, coloque nesta pasta:
+#   - logo.png               -> usado no lugar do nome da empresa
+#   - tela-de-bloqueio.jpg   -> imagem pronta, usada sem nenhuma alteracao
+$empresa = 'Maria Dolores'
+$lembrete = 'Lembrete: registre o seu ponto'
+$corFundo = '#1F2A30'
+$corTexto = '#FFFFFF'
+$corLembrete = '#B8C2C8'
+
 Add-Type -AssemblyName System.Drawing
 $imagem = Join-Path $destino 'tela-de-bloqueio.png'
-$bitmap = New-Object System.Drawing.Bitmap(1920, 1080)
-$g = [System.Drawing.Graphics]::FromImage($bitmap)
-$g.TextRenderingHint = [System.Drawing.Text.TextRenderingHint]::AntiAliasGridFit
-$g.Clear([System.Drawing.Color]::FromArgb(150, 0, 0))
-$centro = New-Object System.Drawing.StringFormat
-$centro.Alignment = 'Center'
-$centro.LineAlignment = 'Center'
-$g.DrawString('BATER PONTO', (New-Object System.Drawing.Font('Segoe UI', 150, [System.Drawing.FontStyle]::Bold, [System.Drawing.GraphicsUnit]::Pixel)),
-    [System.Drawing.Brushes]::White, (New-Object System.Drawing.RectangleF(0, 560, 1920, 220)), $centro)
-$g.DrawString('Registre o seu ponto antes de sair e ao voltar', (New-Object System.Drawing.Font('Segoe UI', 48, [System.Drawing.GraphicsUnit]::Pixel)),
-    [System.Drawing.Brushes]::White, (New-Object System.Drawing.RectangleF(0, 780, 1920, 90)), $centro)
-$g.Dispose()
-$bitmap.Save($imagem, [System.Drawing.Imaging.ImageFormat]::Png)
-$bitmap.Dispose()
+$pronta = Join-Path $PSScriptRoot 'tela-de-bloqueio.jpg'
+if (Test-Path $pronta) {
+    $imagem = Join-Path $destino 'tela-de-bloqueio.jpg'
+    Copy-Item -Force $pronta $imagem
+} else {
+    $bitmap = New-Object System.Drawing.Bitmap(1920, 1080)
+    $g = [System.Drawing.Graphics]::FromImage($bitmap)
+    $g.SmoothingMode = 'AntiAlias'
+    $g.InterpolationMode = 'HighQualityBicubic'
+    $g.TextRenderingHint = [System.Drawing.Text.TextRenderingHint]::AntiAliasGridFit
+    $g.Clear([System.Drawing.ColorTranslator]::FromHtml($corFundo))
+    $centro = New-Object System.Drawing.StringFormat
+    $centro.Alignment = 'Center'
+    $centro.LineAlignment = 'Center'
+
+    # O relogio do Windows 11 fica no alto, entao a marca vai um pouco abaixo do meio.
+    $logoArquivo = Join-Path $PSScriptRoot 'logo.png'
+    if (Test-Path $logoArquivo) {
+        $logo = [System.Drawing.Image]::FromFile($logoArquivo)
+        $escala = [Math]::Min(700 / $logo.Width, 240 / $logo.Height)
+        $w = [int]($logo.Width * $escala); $h = [int]($logo.Height * $escala)
+        $g.DrawImage($logo, [int]((1920 - $w) / 2), [int](700 - $h / 2), $w, $h)
+        $logo.Dispose()
+    } else {
+        $g.DrawString($empresa, (New-Object System.Drawing.Font('Segoe UI Light', 120, [System.Drawing.GraphicsUnit]::Pixel)),
+            (New-Object System.Drawing.SolidBrush([System.Drawing.ColorTranslator]::FromHtml($corTexto))),
+            (New-Object System.Drawing.RectangleF(0, 600, 1920, 200)), $centro)
+    }
+    $linha = New-Object System.Drawing.Pen([System.Drawing.ColorTranslator]::FromHtml($corLembrete), 2)
+    $g.DrawLine($linha, 900, 860, 1020, 860)
+    $g.DrawString($lembrete, (New-Object System.Drawing.Font('Segoe UI', 34, [System.Drawing.GraphicsUnit]::Pixel)),
+        (New-Object System.Drawing.SolidBrush([System.Drawing.ColorTranslator]::FromHtml($corLembrete))),
+        (New-Object System.Drawing.RectangleF(0, 880, 1920, 70)), $centro)
+    $g.Dispose()
+    $bitmap.Save($imagem, [System.Drawing.Imaging.ImageFormat]::Png)
+    $bitmap.Dispose()
+}
 
 try {
     Add-Type -AssemblyName System.Runtime.WindowsRuntime
@@ -99,7 +131,7 @@ try {
     $tarefa = $asTaskOp.MakeGenericMethod([Windows.Storage.StorageFile]).Invoke($null, @([Windows.Storage.StorageFile]::GetFileFromPathAsync($imagem)))
     $tarefa.Wait(-1) | Out-Null
     $asTask.Invoke($null, @([Windows.System.UserProfile.LockScreen]::SetImageFileAsync($tarefa.Result))).Wait(-1) | Out-Null
-    Write-Host 'Tela de bloqueio configurada com BATER PONTO.' -ForegroundColor Green
+    Write-Host 'Tela de bloqueio configurada.' -ForegroundColor Green
 } catch {
     Write-Host "Nao consegui trocar a tela de bloqueio automaticamente ($($_.Exception.Message))." -ForegroundColor Yellow
     Write-Host "Abra Configuracoes > Personalizacao > Tela de bloqueio, escolha 'Imagem' e selecione: $imagem" -ForegroundColor Yellow
