@@ -3,7 +3,7 @@ Get-CimInstance Win32_Process -Filter "Name = 'powershell.exe'" |
     Where-Object { $_.CommandLine -like '*BaterPonto*monitor.ps1*' } |
     ForEach-Object { Invoke-CimMethod -InputObject $_ -MethodName Terminate | Out-Null }
 
-# Devolve o Windows + L e o botao de energia ao normal.
+# Devolve o Windows + L (versao anterior) e o botao de energia ao normal.
 [Microsoft.Win32.Registry]::SetValue('HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Policies\System', 'DisableLockWorkstation', 0, 'DWord')
 $original = Join-Path $env:LOCALAPPDATA 'BaterPonto\botao-energia-original.txt'
 if (Test-Path $original) {
@@ -25,4 +25,5 @@ Remove-Item -Recurse -Force -ErrorAction SilentlyContinue -Path @(
     (Join-Path $env:LOCALAPPDATA 'BaterPonto')
 )
 
-Write-Host 'Bater Ponto removido.' -ForegroundColor Green
+Write-Host 'Bater Ponto removido. Escolha uma nova imagem para a tela de bloqueio na janela que vai abrir.' -ForegroundColor Green
+Start-Process 'ms-settings:lockscreen'

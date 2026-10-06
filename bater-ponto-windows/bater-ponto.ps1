@@ -95,9 +95,5 @@ public static extern bool SetSuspendState(bool hibernate, bool forceCritical, bo
         [BaterPonto.Energia]::SetSuspendState($false, $false, $false) | Out-Null
     }
     'Desligar' { Stop-Computer }
-    'Bloquear' {
-        # O monitor desliga o bloqueio do Windows para segurar o Windows + L; religa so para bloquear agora.
-        [Microsoft.Win32.Registry]::SetValue('HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Policies\System', 'DisableLockWorkstation', 0, 'DWord')
-        rundll32.exe user32.dll,LockWorkStation
-    }
+    'Bloquear' { rundll32.exe user32.dll,LockWorkStation }
 }
