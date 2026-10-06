@@ -51,7 +51,7 @@ powercfg /setdcvalueindex SCHEME_CURRENT SUB_BUTTONS PBUTTONACTION 3
 powercfg /setactive SCHEME_CURRENT
 
 # Desfaz o bloqueio do Windows + L da versao anterior, que nao funcionou.
-[Microsoft.Win32.Registry]::SetValue('HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Policies\System', 'DisableLockWorkstation', 0, 'DWord')
+try { [Microsoft.Win32.Registry]::SetValue('HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Policies\System', 'DisableLockWorkstation', 0, 'DWord') } catch { }
 
 # Imagem da tela de bloqueio com "BATER PONTO": aparece assim que a tela bloqueia
 # (Windows + L, tampa, suspensao ou inatividade).
